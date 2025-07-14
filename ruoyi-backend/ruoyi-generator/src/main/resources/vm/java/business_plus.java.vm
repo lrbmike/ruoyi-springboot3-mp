@@ -1,0 +1,195 @@
+package ${packageName}.business;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.ruoyi.common.utils.StringUtils;
+import org.springframework.stereotype.Component;
+import com.ruoyi.common.core.plus.dto.common.CommonDataPageResponse;
+import com.ruoyi.common.core.plus.dto.page.PageDtoRequest;
+import com.ruoyi.common.core.plus.dto.page.PageDtoResponse;
+import com.ruoyi.common.core.plus.response.StatusResponse;
+import org.springframework.beans.BeanUtils;
+
+import jakarta.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
+
+import ${packageName}.domain.vo.${ClassName}Vo;
+import ${packageName}.domain.${ClassName};
+import ${packageName}.service.${ClassName}Service;
+
+/**
+ * ${functionName}业务
+ * 
+ * @author ${author}
+ * @date ${datetime}
+ */
+@Component
+public class ${ClassName}Business {
+
+    @Resource
+    ${ClassName}Service settingService;
+
+
+    /**
+     * 分页
+     *
+     * @param vo
+     * @return
+     */
+    public CommonDataPageResponse<${ClassName}Vo> page(${ClassName}Vo vo) {
+        CommonDataPageResponse<${ClassName}Vo> response = new CommonDataPageResponse<>();
+
+        //分页
+        Long current = 1L;
+        Long size = 10L;
+
+        PageDtoRequest reqPageDto = vo.getPageDto();
+        if (reqPageDto != null) {
+            current = reqPageDto.getCurrent() != null ? reqPageDto.getCurrent() : 1L;
+            size = reqPageDto.getSize() != null ? reqPageDto.getSize() : 10L;
+        }
+
+        Page page = new Page<>(current, size);
+
+        LambdaQueryWrapper<${ClassName}> queryWrapper = Wrappers.lambdaQuery();
+
+    #foreach ($column in $columns)
+        #if($column.isQuery)
+            #if($column.javaType == 'String')
+                #if($column.queryType == 'LIKE')
+        queryWrapper.like(StringUtils.hasText(vo.get${column.capJavaField}()), ${ClassName}::get${column.capJavaField}, vo.get${column.capJavaField}());
+
+                #elseif($column.queryType == 'EQ')
+        queryWrapper.eq(StringUtils.hasText(vo.get${column.capJavaField}()), ${ClassName}::get${column.capJavaField}, vo.get${column.capJavaField}());
+
+                #end
+            #elseif($column.javaType == 'Long'|| $column.javaType == 'Integer')
+        queryWrapper.eq(vo.get${column.capJavaField}() != null, ${ClassName}::get${column.capJavaField}, vo.get${column.capJavaField}());
+
+            #elseif($column.javaType == 'Date')
+                #if($column.queryType == 'BETWEEN')
+        if (StringUtils.hasText(vo.getStartDate())) {
+            queryWrapper.ge(${ClassName}::get${column.capJavaField}, vo.getStartDate());
+        }
+
+        if (StringUtils.hasText(vo.getEndDate())) {
+            queryWrapper.le(${ClassName}::get${column.capJavaField}, vo.getEndDate());
+        }
+
+                #elseif($column.queryType == 'EQ')
+        queryWrapper.eq(vo.get${column.capJavaField}() != null, ${ClassName}::get${column.capJavaField}, vo.get${column.capJavaField}());
+
+                #end
+            #end
+        #end
+    #end
+        queryWrapper.orderByDesc(${ClassName}::get${pkColumn.capJavaField});
+
+        IPage<Student> pageRecords = settingService.page(page, queryWrapper);
+
+        //分页记录
+        List<${ClassName}> records = pageRecords.getRecords();
+        //转为vo
+        List<${ClassName}Vo> voList = new ArrayList<>();
+        for (${ClassName} record : records) {
+            ${ClassName}Vo settingVo  = new ${ClassName}Vo();
+
+            BeanUtils.copyProperties(record, settingVo);
+
+            voList.add(settingVo);
+        }
+        response.setRecords(voList);
+
+        //分页信息
+        PageDtoResponse pageDto = new PageDtoResponse();
+        pageDto.setCurrent(current);
+        pageDto.setSize(size);
+        pageDto.setTotal(pageRecords.getTotal());
+        pageDto.setPages(pageRecords.getPages());
+
+        response.setPageDto(pageDto);
+
+        return response;
+    }
+
+    /**
+     * 信息
+     *
+     * @param vo
+     * @return
+     */
+    public ${ClassName}Vo info(${ClassName}Vo vo) {
+
+        ${ClassName}Vo settingVo = new ${ClassName}Vo();
+
+        ${pkColumn.javaType} ${pkColumn.javaField} = vo.get${pkColumn.capJavaField}();
+
+        ${ClassName} record = settingService.getById(${pkColumn.javaField});
+
+        BeanUtils.copyProperties(record, settingVo);
+
+        return settingVo;
+    }
+
+    /**
+     * 添加
+     *
+     * @param vo
+     * @return
+     */
+    public StatusResponse add(${ClassName}Vo vo) {
+        StatusResponse response = new StatusResponse();
+
+        ${ClassName} record = new ${ClassName}();
+
+        BeanUtils.copyProperties(vo, record);
+
+        settingService.save(record);
+
+        response.setSuccess(true);
+
+        return response;
+    }
+
+    /**
+     * 更新
+     *
+     * @param vo
+     * @return
+     */
+    public StatusResponse update(${ClassName}Vo vo) {
+        StatusResponse response = new StatusResponse();
+
+        ${ClassName} record = new ${ClassName}();
+
+        BeanUtils.copyProperties(vo, record);
+
+        settingService.updateById(record);
+
+        response.setSuccess(true);
+
+        return response;
+    }
+
+    /**
+     * 删除
+     *
+     * @param vo
+     * @return
+     */
+    public StatusResponse delete(${ClassName}Vo vo) {
+        StatusResponse response = new StatusResponse();
+
+        ${pkColumn.javaType} ${pkColumn.javaField} = vo.get${pkColumn.capJavaField}();
+
+        settingService.removeById(${pkColumn.javaField});
+
+        response.setSuccess(true);
+
+        return response;
+    }
+
+}

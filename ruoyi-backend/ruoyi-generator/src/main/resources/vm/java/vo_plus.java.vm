@@ -1,0 +1,38 @@
+#set($hasLocalDateTime = false)
+#foreach ($column in $columns)
+    #if($column.javaType == 'Date' || $column.javaType == 'LocalDateTime')
+        #set($hasLocalDateTime = true)
+    #end
+#end
+
+package ${packageName}.domain.vo;
+
+import lombok.Data;
+import com.ruoyi.common.core.plus.dto.BasePageDtoRequest;
+#if($hasLocalDateTime)
+import java.time.LocalDateTime;
+#end
+
+/**
+ * ${functionName}对象 ${tableName} vo
+ *
+ * @author ${author}
+ * @date ${datetime}
+ */
+@Data
+public class ${ClassName}Vo extends BasePageDtoRequest {
+
+    #foreach ($column in $columns)
+        #if($column.isPk == '1' || $column.list)
+    /**
+     * ${column.columnComment}
+     */
+            #if($column.javaType == 'Date')
+    private LocalDateTime $column.javaField;
+            #else
+    private $column.javaType $column.javaField;
+            #end
+        #end
+    #end
+
+}

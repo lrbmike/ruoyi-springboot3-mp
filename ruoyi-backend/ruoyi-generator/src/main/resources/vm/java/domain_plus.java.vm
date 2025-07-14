@@ -1,0 +1,48 @@
+#set($hasLocalDateTime = false)
+#foreach ($column in $columns)
+    #if($column.javaType == 'Date' || $column.javaType == 'LocalDateTime')
+        #set($hasLocalDateTime = true)
+    #end
+#end
+
+package ${packageName}.domain;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+import java.io.Serializable;
+#if($hasLocalDateTime)
+import java.time.LocalDateTime;
+#end
+
+/**
+ * ${functionName}
+ *
+ * @author ${author}
+ * @date ${datetime}
+ */
+@Data
+@TableName("${tableName}")
+public class ${ClassName} implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+#foreach ($column in $columns)
+    #if(!$table.isSuperColumn($column.javaField))
+    /**
+     * ${column.columnComment}
+     */
+        #if($column.isPk == '1')
+     @TableId(value = "${column.columnName}", type = IdType.AUTO)
+        #else
+     @TableField("${column.columnName}")
+        #end
+        #if($column.javaType == 'Date')
+     private LocalDateTime ${column.javaField};
+        #else
+     private ${column.javaType} ${column.javaField};
+        #end
+    #end
+#end
+}
